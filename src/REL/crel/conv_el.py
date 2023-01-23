@@ -10,13 +10,19 @@ from REL.response_model import ResponseModel
 
 class ConvEL:
     def __init__(
-        self, base_url=".", wiki_version="wiki_2019", ed_model=None, user_config=None, threshold=0
-    ):
+            self,
+            base_url=".",
+            wiki_version="wiki_2019",
+            ed_model=None,
+            user_config=None,
+            threshold=0,
+            ner_model="bert_conv-td",
+        ):
         self.threshold = threshold
 
         self.wiki_version = wiki_version
         self.base_url = base_url
-        self.file_pretrained = str(Path(base_url) / "bert_conv-td")
+        self.file_pretrained = str(Path(base_url) / ner_model)
 
         self.bert_md = BERT_MD(self.file_pretrained)
 

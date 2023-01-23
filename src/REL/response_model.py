@@ -4,6 +4,18 @@ from flair.models import SequenceTagger
 from REL.mention_detection import MentionDetection
 from REL.utils import process_results
 
+MD_MODELS = {}
+
+def _get_mention_detection_model(base_url, wiki_version):
+    """Return instance of previously generated model for the same wiki version."""
+    try:
+        md_model = MD_MODELS[(base_url, wiki_version)]
+    except KeyError:
+        md_model = MentionDetection(base_url, wiki_version)
+        MD_MODELS[base_url, wiki_version] = md_model
+
+    return md_model
+
 
 class ResponseModel:
     API_DOC = "API_DOC"
@@ -16,7 +28,7 @@ class ResponseModel:
         self.wiki_version = wiki_version
 
         self.custom_ner = not isinstance(tagger_ner, SequenceTagger)
-        self.mention_detection = MentionDetection(base_url, wiki_version)
+        self.mention_detection = _get_mention_detection_model(base_url, wiki_version)
 
     def generate_response(self,
                           *,
