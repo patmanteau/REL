@@ -52,7 +52,16 @@ inputs = (
                 'utterance': 'Talking of food, can you recommend me a restaurant in my city for our anniversary?',
             },
         ],
-    }
+    },
+    {
+        'mode': 'ne_concept',
+        'model': 'ner-fast-with-lowercase',
+        'text': 'REL is a modular Entity Linking package that can both be integrated in existing pipelines or be used as an API.',
+        'spans': [],
+    },
+    {
+        'mode': 'fail',
+    },
 )
 
 for payload in inputs:

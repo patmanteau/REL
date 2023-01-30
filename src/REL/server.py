@@ -29,9 +29,19 @@ class NamedEntityConfig(BaseModel):
         "ner-fast-with-lowercase",
     ] = Field("ner-fast", description="NER model to use.")
 
+    def response(self):
+        """Return response for request."""
+        handler = handlers[self.model]
+        response = handler.generate_response(text=self.text, spans=self.spans)
+        return response
+
 
 class NamedEntityConceptConfig(BaseModel):
     mode: Literal['ne_concept']
+
+    def response(self):
+        """Return response for request."""
+        return "Not implemented"
 
 
 class ConversationTurn(BaseModel):
@@ -47,15 +57,22 @@ class ConversationConfig(BaseModel):
         "default", 
     ] = Field("default", description="NER model to use.")
 
+    def response(self):
+        """Return response for request."""
+        text = self.dict()['text']
+        conv_handler = conv_handlers[self.model]
+        response = conv_handler.annotate(text)
+        return response
+
 
 class DefaultConfig(NamedEntityConfig):
-    mode: str = 'ne'
+    mode: Literal['ne'] = 'ne'
 
 
-Config = Annotated[Union[DefaultConfig,
-                         NamedEntityConfig,
+Config = Annotated[Union[NamedEntityConfig,
                          NamedEntityConceptConfig,
-                         ConversationConfig],
+                         ConversationConfig,
+                         DefaultConfig],  # default must be last
                        Field(discriminator='mode')]
 
 
@@ -63,24 +80,11 @@ Config = Annotated[Union[DefaultConfig,
 def root(config: Config):
     """Submit your text here for entity disambiguation or linking."""
 
-    print(config)
+    # print(f'\nmode: {config.mode} -> {type(config)}\n')
 
-    return config
+    # return config
 
-    if config.mode == 'conv':
-        text = config.dict()['text']
-
-        conv_handler = conv_handlers[config.model]
-        response = conv_handler.annotate(text)
-
-    elif config.mode == 'ne':
-        handler = handlers[config.model]
-        response = handler.generate_response(text=config.text, spans=config.spans)
-
-    elif config.mode == 'ne_concept':
-        raise NotImplementedError
-
-    return response
+    return config.response()
 
 
 if __name__ == "__main__":
@@ -96,22 +100,22 @@ if __name__ == "__main__":
     p.add_argument("--port", "-p", default=5555, type=int)
     args = p.parse_args()
 
-    # from REL.crel.conv_el import ConvEL
-    # from REL.entity_disambiguation import EntityDisambiguation
-    # from REL.ner import load_flair_ner
+    from REL.crel.conv_el import ConvEL
+    from REL.entity_disambiguation import EntityDisambiguation
+    from REL.ner import load_flair_ner
 
-    # ed_model = EntityDisambiguation(
-    #     args.base_url, args.wiki_version, {"mode": "eval", "model_path": args.ed_model}
-    # )
+    ed_model = EntityDisambiguation(
+        args.base_url, args.wiki_version, {"mode": "eval", "model_path": args.ed_model}
+    )
 
-    # handlers = {}
+    handlers = {}
 
-    # for ner_model_name in args.ner_model:
-    #     print('Loading NER model:', ner_model_name)
-    #     ner_model = load_flair_ner(ner_model_name)
-    #     handler = ResponseModel(args.base_url, args.wiki_version, ed_model, ner_model)
-    #     handlers[ner_model_name] = handler
+    for ner_model_name in args.ner_model:
+        print('Loading NER model:', ner_model_name)
+        ner_model = load_flair_ner(ner_model_name)
+        handler = ResponseModel(args.base_url, args.wiki_version, ed_model, ner_model)
+        handlers[ner_model_name] = handler
 
-    # conv_handlers = {'default': ConvEL(args.base_url, args.wiki_version, ed_model=ed_model)}
+    conv_handlers = {'default': ConvEL(args.base_url, args.wiki_version, ed_model=ed_model)}
 
     uvicorn.run(app, port=args.port, host=args.bind)
