@@ -35,6 +35,12 @@ inputs = (
         'spans': [],
     },
     {
+        'mode': 'ne',
+        'tagger': 'ner-fast',
+        'text': "If you're going to try, go all the way - Charles Bukowski.",
+        'spans': [(41, 16)],
+    },
+    {
         'mode': 'conv',
         'tagger': 'default',
         'text':

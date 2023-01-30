@@ -1,4 +1,4 @@
-from REL.response_model import ResponseModel
+from REL.response_handler import ResponseHandler
 
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
@@ -137,7 +137,7 @@ if __name__ == "__main__":
         for ner_model_name in args.ner_model:
             print("Loading NER model:", ner_model_name)
             ner_model = load_flair_ner(ner_model_name)
-            handler = ResponseModel(
+            handler = ResponseHandler(
                 args.base_url, args.wiki_version, ed_model, ner_model
             )
             handlers[ner_model_name] = handler

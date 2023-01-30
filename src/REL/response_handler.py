@@ -17,7 +17,7 @@ def _get_mention_detection_model(base_url, wiki_version):
     return md_model
 
 
-class ResponseModel:
+class ResponseHandler:
     API_DOC = "API_DOC"
 
     def __init__(self, base_url, wiki_version, model, tagger_ner=None):
