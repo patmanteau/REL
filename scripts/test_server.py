@@ -24,49 +24,39 @@ port = '5555'
 
 inputs = (
     {
-        'endpoint': '',
-        'payload': 
-        {
-            'model': 'ner-fast',
-            'text': 'REL is a modular Entity Linking package that can both be integrated in existing pipelines or be used as an API.',
-            'spans': [],
-        }
+        'model': 'ner-fast',
+        'text': 'REL is a modular Entity Linking package that can both be integrated in existing pipelines or be used as an API.',
+        'spans': [],
     },
     {
-        'endpoint': '',
-        'payload': {
-            'model': 'ner-fast-with-lowercase',
-            'text': 'REL is a modular Entity Linking package that can both be integrated in existing pipelines or be used as an API.',
-            'spans': [],
-        }
+        'mode': 'ne',
+        'model': 'ner-fast-with-lowercase',
+        'text': 'REL is a modular Entity Linking package that can both be integrated in existing pipelines or be used as an API.',
+        'spans': [],
     },
     {
-        'endpoint': 'conversation',
-        'payload': 
-        {
-            'model': 'default',
-            'text':
-            [
-                {
-                    'speaker': 'USER',
-                    'utterance': 'I am allergic to tomatoes but we have a lot of famous Italian restaurants here in London.',
-                },
-                {
-                    'speaker': 'SYSTEM',
-                    'utterance': 'Some people are allergic to histamine in tomatoes.',
-                },
-                {
-                    'speaker': 'USER',
-                    'utterance': 'Talking of food, can you recommend me a restaurant in my city for our anniversary?',
-                },
-            ],
-        }
-    },    
+        'mode': 'conv',
+        'model': 'default',
+        'text':
+        [
+            {
+                'speaker': 'USER',
+                'utterance': 'I am allergic to tomatoes but we have a lot of famous Italian restaurants here in London.',
+            },
+            {
+                'speaker': 'SYSTEM',
+                'utterance': 'Some people are allergic to histamine in tomatoes.',
+            },
+            {
+                'speaker': 'USER',
+                'utterance': 'Talking of food, can you recommend me a restaurant in my city for our anniversary?',
+            },
+        ],
+    }
 )
 
-for inp in inputs:
-    endpoint = inp['endpoint']
-    payload = inp['payload']
+for payload in inputs:
+    endpoint = ''
 
     print('Input API:')
     print(payload)

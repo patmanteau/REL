@@ -2,7 +2,7 @@ from REL.response_model import ResponseModel
 
 from fastapi import FastAPI
 from pydantic import BaseModel, Field
-from typing import List, Optional, Literal
+from typing import List, Optional, Literal, Union, Annotated
 
 app = FastAPI()
 
@@ -16,8 +16,9 @@ def root():
         "color": "green",
     }
 
+class NamedEntityConfig(BaseModel):
+    mode: Literal['ne']
 
-class EntityConfig(BaseModel):
     text: str = Field(..., description="Text for entity linking or disambiguation.")
     spans: List[str] = Field(..., description=(
         "For EL: the spans field needs to be set to an empty list. "
@@ -28,12 +29,9 @@ class EntityConfig(BaseModel):
         "ner-fast-with-lowercase",
     ] = Field("ner-fast", description="NER model to use.")
 
-@app.post("/")
-def root(config: EntityConfig):
-    """Submit your text here for entity disambiguation or linking."""
-    handler = handlers[config.model]
-    response = handler.generate_response(text=config.text, spans=config.spans)
-    return response
+
+class NamedEntityConceptConfig(BaseModel):
+    mode: Literal['ne_concept']
 
 
 class ConversationTurn(BaseModel):
@@ -42,19 +40,45 @@ class ConversationTurn(BaseModel):
 
 
 class ConversationConfig(BaseModel):
+    mode: Literal['conv']
+
     text: List[ConversationTurn] = Field(..., description="Conversation as list of turns between two speakers.")
     model: Literal[
         "default", 
     ] = Field("default", description="NER model to use.")
 
 
-@app.post("/conversation/")
-def conversation(config: ConversationConfig):
-    """Submit your text here for conversational entity linking."""
-    text = config.dict()['text']
+class DefaultConfig(NamedEntityConfig):
+    mode: str = 'ne'
 
-    conv_handler = conv_handlers[config.model]
-    response = conv_handler.annotate(text)
+
+Config = Annotated[Union[DefaultConfig,
+                         NamedEntityConfig,
+                         NamedEntityConceptConfig,
+                         ConversationConfig],
+                       Field(discriminator='mode')]
+
+
+@app.post("/")
+def root(config: Config):
+    """Submit your text here for entity disambiguation or linking."""
+
+    print(config)
+
+    return config
+
+    if config.mode == 'conv':
+        text = config.dict()['text']
+
+        conv_handler = conv_handlers[config.model]
+        response = conv_handler.annotate(text)
+
+    elif config.mode == 'ne':
+        handler = handlers[config.model]
+        response = handler.generate_response(text=config.text, spans=config.spans)
+
+    elif config.mode == 'ne_concept':
+        raise NotImplementedError
 
     return response
 
@@ -72,22 +96,22 @@ if __name__ == "__main__":
     p.add_argument("--port", "-p", default=5555, type=int)
     args = p.parse_args()
 
-    from REL.crel.conv_el import ConvEL
-    from REL.entity_disambiguation import EntityDisambiguation
-    from REL.ner import load_flair_ner
+    # from REL.crel.conv_el import ConvEL
+    # from REL.entity_disambiguation import EntityDisambiguation
+    # from REL.ner import load_flair_ner
 
-    ed_model = EntityDisambiguation(
-        args.base_url, args.wiki_version, {"mode": "eval", "model_path": args.ed_model}
-    )
+    # ed_model = EntityDisambiguation(
+    #     args.base_url, args.wiki_version, {"mode": "eval", "model_path": args.ed_model}
+    # )
 
-    handlers = {}
+    # handlers = {}
 
-    for ner_model_name in args.ner_model:
-        print('Loading NER model:', ner_model_name)
-        ner_model = load_flair_ner(ner_model_name)
-        handler = ResponseModel(args.base_url, args.wiki_version, ed_model, ner_model)
-        handlers[ner_model_name] = handler
+    # for ner_model_name in args.ner_model:
+    #     print('Loading NER model:', ner_model_name)
+    #     ner_model = load_flair_ner(ner_model_name)
+    #     handler = ResponseModel(args.base_url, args.wiki_version, ed_model, ner_model)
+    #     handlers[ner_model_name] = handler
 
-    conv_handlers = {'default': ConvEL(args.base_url, args.wiki_version, ed_model=ed_model)}
+    # conv_handlers = {'default': ConvEL(args.base_url, args.wiki_version, ed_model=ed_model)}
 
     uvicorn.run(app, port=args.port, host=args.bind)
