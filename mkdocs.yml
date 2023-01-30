@@ -8,7 +8,7 @@ nav:
     - tutorials/evaluate_gerbil.md
     - tutorials/deploy_REL_new_wiki.md
     - tutorials/reproducing_our_results.md
-    - tutorials/systemd_instructions.md
+    - tutorials/server.md
     - tutorials/custom_models.md
     - tutorials/conversations.md
   - Python API reference:
