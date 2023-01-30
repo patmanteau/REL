@@ -24,19 +24,19 @@ port = '5555'
 
 inputs = (
     {
-        'model': 'ner-fast',
+        'tagger': 'ner-fast',
         'text': 'REL is a modular Entity Linking package that can both be integrated in existing pipelines or be used as an API.',
         'spans': [],
     },
     {
         'mode': 'ne',
-        'model': 'ner-fast-with-lowercase',
+        'tagger': 'ner-fast-with-lowercase',
         'text': 'REL is a modular Entity Linking package that can both be integrated in existing pipelines or be used as an API.',
         'spans': [],
     },
     {
         'mode': 'conv',
-        'model': 'default',
+        'tagger': 'default',
         'text':
         [
             {
@@ -55,12 +55,13 @@ inputs = (
     },
     {
         'mode': 'ne_concept',
-        'model': 'ner-fast-with-lowercase',
-        'text': 'REL is a modular Entity Linking package that can both be integrated in existing pipelines or be used as an API.',
-        'spans': [],
     },
     {
         'mode': 'fail',
+    },
+    {
+        'text': 'Hello world.',
+        'this-argument-does-not-exist': None,
     },
 )
 

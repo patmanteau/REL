@@ -6,7 +6,10 @@ from pydantic import BaseModel
 from pydantic import Field
 from typing import List, Optional, Literal, Union, Annotated
 
+DEBUG = False
+
 app = FastAPI()
+
 
 @app.get("/")
 def root():
@@ -18,78 +21,91 @@ def root():
         "color": "green",
     }
 
+
 class NamedEntityConfig(BaseModel):
-    mode: Literal['ne']
+    mode: Literal["ne"]
 
     text: str = Field(..., description="Text for entity linking or disambiguation.")
-    spans: List[str] = Field(..., description=(
-        "For EL: the spans field needs to be set to an empty list. "
-        "For ED: spans should consist of a list of tuples, where each "
-        "tuple refers to the start position and length of a mention."))
-    model: Literal[
-        "ner-fast", 
+    spans: List[str] = Field(
+        ...,
+        description=(
+            "For EL: the spans field needs to be set to an empty list. "
+            "For ED: spans should consist of a list of tuples, where each "
+            "tuple refers to the start position and length of a mention."
+        ),
+    )
+    tagger: Literal[
+        "ner-fast",
         "ner-fast-with-lowercase",
-    ] = Field("ner-fast", description="NER model to use.")
+    ] = Field("ner-fast", description="NER tagger to use.")
 
     def response(self):
         """Return response for request."""
-        handler = handlers[self.model]
+        handler = handlers[self.tagger]
         response = handler.generate_response(text=self.text, spans=self.spans)
         return response
 
 
 class NamedEntityConceptConfig(BaseModel):
-    mode: Literal['ne_concept']
+    mode: Literal["ne_concept"]
 
     def response(self):
         """Return response for request."""
         response = JSONResponse(
-            content = {'msg': 'Mode `ne_concept` has not been implemeted.'},
+            content={"msg": "Mode `ne_concept` has not been implemeted."},
             status_code=501,
         )
         return response
 
+
 class ConversationTurn(BaseModel):
-    speaker: Literal["USER", "SYSTEM"] = Field(..., description="Speaker for this turn.")
+    speaker: Literal["USER", "SYSTEM"] = Field(
+        ..., description="Speaker for this turn."
+    )
     utterance: str = Field(..., description="Input utterance.")
 
 
 class ConversationConfig(BaseModel):
-    mode: Literal['conv']
+    mode: Literal["conv"]
 
-    text: List[ConversationTurn] = Field(..., description="Conversation as list of turns between two speakers.")
-    model: Literal[
-        "default", 
-    ] = Field("default", description="NER model to use.")
+    text: List[ConversationTurn] = Field(
+        ..., description="Conversation as list of turns between two speakers."
+    )
+    tagger: Literal[
+        "default",
+    ] = Field("default", description="NER tagger to use.")
 
     def response(self):
         """Return response for request."""
-        text = self.dict()['text']
-        conv_handler = conv_handlers[self.model]
+        text = self.dict()["text"]
+        conv_handler = conv_handlers[self.tagger]
         response = conv_handler.annotate(text)
         return response
 
 
 class DefaultConfig(NamedEntityConfig):
-    mode: Literal['ne'] = 'ne'
+    mode: Literal["ne"] = "ne"
 
 
-Config = Annotated[Union[NamedEntityConfig,
-                         NamedEntityConceptConfig,
-                         ConversationConfig,
-                         DefaultConfig],  # default must be last
-                       Field(discriminator='mode')]
+Config = Annotated[
+    Union[
+        NamedEntityConfig,
+        NamedEntityConceptConfig,
+        ConversationConfig,
+        DefaultConfig,  # default must be last
+    ],
+    Field(discriminator="mode"),
+]
 
 
 @app.post("/")
 def root(config: Config):
     """Submit your text here for entity disambiguation or linking."""
-
-    # print(f'\nmode: {config.mode} -> {type(config)}\n')
-
-    # return config
-
-    return config.response()
+    if DEBUG:
+        print(f"\nmode: {config.mode} -> {type(config)}\n")
+        return config
+    else:
+        return config.response()
 
 
 if __name__ == "__main__":
@@ -105,22 +121,29 @@ if __name__ == "__main__":
     p.add_argument("--port", "-p", default=5555, type=int)
     args = p.parse_args()
 
-    from REL.crel.conv_el import ConvEL
-    from REL.entity_disambiguation import EntityDisambiguation
-    from REL.ner import load_flair_ner
+    if not DEBUG:
+        from REL.crel.conv_el import ConvEL
+        from REL.entity_disambiguation import EntityDisambiguation
+        from REL.ner import load_flair_ner
 
-    ed_model = EntityDisambiguation(
-        args.base_url, args.wiki_version, {"mode": "eval", "model_path": args.ed_model}
-    )
+        ed_model = EntityDisambiguation(
+            args.base_url,
+            args.wiki_version,
+            {"mode": "eval", "model_path": args.ed_model},
+        )
 
-    handlers = {}
+        handlers = {}
 
-    for ner_model_name in args.ner_model:
-        print('Loading NER model:', ner_model_name)
-        ner_model = load_flair_ner(ner_model_name)
-        handler = ResponseModel(args.base_url, args.wiki_version, ed_model, ner_model)
-        handlers[ner_model_name] = handler
+        for ner_model_name in args.ner_model:
+            print("Loading NER model:", ner_model_name)
+            ner_model = load_flair_ner(ner_model_name)
+            handler = ResponseModel(
+                args.base_url, args.wiki_version, ed_model, ner_model
+            )
+            handlers[ner_model_name] = handler
 
-    conv_handlers = {'default': ConvEL(args.base_url, args.wiki_version, ed_model=ed_model)}
+        conv_handlers = {
+            "default": ConvEL(args.base_url, args.wiki_version, ed_model=ed_model)
+        }
 
     uvicorn.run(app, port=args.port, host=args.bind)
