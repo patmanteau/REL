@@ -1,7 +1,9 @@
 from REL.response_model import ResponseModel
 
 from fastapi import FastAPI
-from pydantic import BaseModel, Field
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+from pydantic import Field
 from typing import List, Optional, Literal, Union, Annotated
 
 app = FastAPI()
@@ -41,8 +43,11 @@ class NamedEntityConceptConfig(BaseModel):
 
     def response(self):
         """Return response for request."""
-        return "Not implemented"
-
+        response = JSONResponse(
+            content = {'msg': 'Mode `ne_concept` has not been implemeted.'},
+            status_code=501,
+        )
+        return response
 
 class ConversationTurn(BaseModel):
     speaker: Literal["USER", "SYSTEM"] = Field(..., description="Speaker for this turn.")
