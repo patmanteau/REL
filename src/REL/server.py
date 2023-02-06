@@ -165,10 +165,11 @@ def root():
 
 
 @app.post("/", response_model=List[NEAnnotation])
-def root(config: NamedEntityConfig):
+@app.post("/ne", response_model=List[NEAnnotation])
+def named_entity_linking(config: NamedEntityConfig):
     """Submit your text here for entity disambiguation or linking.
-
-    The REL annotation mode can be selected by changing the endpoint.
+    
+    The REL annotation mode can be selected by changing the path.
     use `/` or `/ne/` for annotating regular text with named
     entities (default), `/ne_concept/` for regular text with both concepts and
     named entities, and `/conv/` for conversations with both concepts and
@@ -179,16 +180,8 @@ def root(config: NamedEntityConfig):
     return config.response()
 
 
-@app.post("/ne", response_model=List[NEAnnotation])
-def root(config: NamedEntityConfig):
-    """Submit your text here for entity disambiguation or linking."""
-    if DEBUG:
-        return []
-    return config.response()
-
-
 @app.post("/conv", response_model=List[TurnResponse])
-def root(config: ConversationConfig):
+def conversational_entity_linking(config: ConversationConfig):
     """Submit your text here for conversational entity linking."""
     if DEBUG:
         return []
@@ -196,7 +189,7 @@ def root(config: ConversationConfig):
 
 
 @app.post("/ne_concept", response_model=List[NEAnnotation])
-def root(config: NamedEntityConceptConfig):
+def conceptual_named_entity_linking(config: NamedEntityConceptConfig):
     """Submit your text here for conceptual entity disambiguation or linking."""
     if DEBUG:
         return []
