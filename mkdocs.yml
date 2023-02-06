@@ -2,6 +2,7 @@ site_name: "REL: Radboud Entity Linker"
 
 nav:
   - Home: index.md
+  - API: server_api.md
   - Tutorials:
     - tutorials/how_to_get_started.md
     - tutorials/e2e_entity_linking.md
