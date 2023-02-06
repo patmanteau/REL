@@ -85,8 +85,8 @@ items = (
 )
 
 for item in items:
-    endpoint = item['endpoint']
-    payload = item['payload']
+    endpoint = item["endpoint"]
+    payload = item["payload"]
 
     print("Request body:")
     print(payload)

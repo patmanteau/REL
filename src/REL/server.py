@@ -13,10 +13,12 @@ app = FastAPI()
 
 Span = Tuple[int, int]
 
+
 class NamedEntityConfig(BaseModel):
     """Config for named entity linking. For more information, see
     <https://rel.readthedocs.io/en/latest/tutorials/e2e_entity_linking/>
     """
+
     text: str = Field(..., description="Text for entity linking or disambiguation.")
     spans: Optional[List[Span]] = Field(
         None,
@@ -76,11 +78,20 @@ class ConversationTurn(BaseModel):
     )
     utterance: str = Field(..., description="Input utterance to be annotated.")
 
+    class Config:
+        schema_extra = {
+            "example": {
+                "speaker": "USER",
+                "utterance": "I am allergic to tomatoes but we have a lot of famous Italian restaurants here in London.",
+            }
+        }
+
 
 class ConversationConfig(BaseModel):
     """Config for conversational entity linking. For more information:
     <https://rel.readthedocs.io/en/latest/tutorials/conversations/>.
     """
+
     text: List[ConversationTurn] = Field(
         ..., description="Conversation as list of turns between two speakers."
     )
@@ -93,8 +104,8 @@ class ConversationConfig(BaseModel):
             "example": {
                 "text": (
                     {
-                    "speaker": "USER",
-                    "utterance": "I am allergic to tomatoes but we have a lot of famous Italian restaurants here in London.",
+                        "speaker": "USER",
+                        "utterance": "I am allergic to tomatoes but we have a lot of famous Italian restaurants here in London.",
                     },
                     {
                         "speaker": "SYSTEM",
@@ -105,7 +116,7 @@ class ConversationConfig(BaseModel):
                         "utterance": "Talking of food, can you recommend me a restaurant in my city for our anniversary?",
                     },
                 ),
-                "tagger": "default"
+                "tagger": "default",
             }
         }
 
@@ -120,24 +131,51 @@ class ConversationConfig(BaseModel):
 class TurnAnnotation(BaseModel):
     __root__: List[Union[int, str]] = Field(
         ...,
-        min_items=4, max_items=4,
+        min_items=4,
+        max_items=4,
         description="""
 The 4 values of the annotation represent the start index of the word, 
 length of the word, the annotated word, and the prediction.
 """,
     )
 
+    class Config:
+        schema_extra = {"example": [82, 6, "London", "London"]}
+
 
 class SystemResponse(ConversationTurn):
     """Return input when the speaker equals 'SYSTEM'."""
-    speaker: str = 'SYSTEM'
+
+    speaker: str = "SYSTEM"
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "speaker": "SYSTEM",
+                "utterance": "Some people are allergic to histamine in tomatoes.",
+            },
+        }
+
 
 class UserResponse(ConversationTurn):
     """Return annotations when the speaker equals 'USER'."""
-    speaker: str = 'USER'
-    annotations: List[TurnAnnotation] = Field(
-        ...,
-        description="List of annotations.")
+
+    speaker: str = "USER"
+    annotations: List[TurnAnnotation] = Field(..., description="List of annotations.")
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "speaker": "USER",
+                "utterance": "I am allergic to tomatoes but we have a lot of famous Italian restaurants here in London.",
+                "annotations": [
+                    [17, 8, "tomatoes", "Tomato"],
+                    [54, 19, "Italian restaurants", "Italian_cuisine"],
+                    [82, 6, "London", "London"],
+                ],
+            },
+        }
+
 
 TurnResponse = Union[UserResponse, SystemResponse]
 
@@ -145,16 +183,31 @@ TurnResponse = Union[UserResponse, SystemResponse]
 class NEAnnotation(BaseModel):
     """Annotation for named entity linking."""
 
-    __root__: List[Union[int, str, float]] = Field(..., 
-        min_items=7, max_items=7,
+    __root__: List[Union[int, str, float]] = Field(
+        ...,
+        min_items=7,
+        max_items=7,
         description="""
 The 7 values of the annotation represent the 
 start index, end index, the annotated word, prediction, ED confidence, MD confidence, and tag.
-""")
+""",
+    )
+
+    class Config:
+        schema_extra = {
+            "example": [41, 16, "Charles Bukowski", "Charles_Bukowski", 0, 0, "NULL"]
+        }
 
 
-@app.get("/")
-def root():
+class StatusResponse(BaseModel):
+    schemaVersion: int
+    label: str
+    message: str
+    color: str
+
+
+@app.get("/", response_model=StatusResponse)
+def server_status():
     """Returns server status."""
     return {
         "schemaVersion": 1,
@@ -168,7 +221,7 @@ def root():
 @app.post("/ne", response_model=List[NEAnnotation])
 def named_entity_linking(config: NamedEntityConfig):
     """Submit your text here for entity disambiguation or linking.
-    
+
     The REL annotation mode can be selected by changing the path.
     use `/` or `/ne/` for annotating regular text with named
     entities (default), `/ne_concept/` for regular text with both concepts and
@@ -194,7 +247,6 @@ def conceptual_named_entity_linking(config: NamedEntityConceptConfig):
     if DEBUG:
         return []
     return config.response()
-
 
 
 if __name__ == "__main__":
