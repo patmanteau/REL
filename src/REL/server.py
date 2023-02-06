@@ -39,6 +39,15 @@ characters); e.g.,  `[(0, 8), (15,11)]` for mentions 'Nijmegen' and
         "ner-fast-with-lowercase",
     ] = Field("ner-fast", description="NER tagger to use.")
 
+    class Config:
+        schema_extra = {
+            "example": {
+                "text": "If you're going to try, go all the way - Charles Bukowski.",
+                "spans": [(41, 16)],
+                "tagger": "ner-fast",
+            }
+        }
+
     def response(self):
         """Return response for request."""
         handler = handlers[self.tagger]
@@ -78,6 +87,27 @@ class ConversationConfig(BaseModel):
     tagger: Literal[
         "default",
     ] = Field("default", description="NER tagger to use.")
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "text": (
+                    {
+                    "speaker": "USER",
+                    "utterance": "I am allergic to tomatoes but we have a lot of famous Italian restaurants here in London.",
+                    },
+                    {
+                        "speaker": "SYSTEM",
+                        "utterance": "Some people are allergic to histamine in tomatoes.",
+                    },
+                    {
+                        "speaker": "USER",
+                        "utterance": "Talking of food, can you recommend me a restaurant in my city for our anniversary?",
+                    },
+                ),
+                "tagger": "default"
+            }
+        }
 
     def response(self):
         """Return response for request."""
