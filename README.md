@@ -152,7 +152,7 @@ The remainder of the tutorials are optional and for users who wish to e.g. train
 3. [Evaluate on GERBIL.](https://rel.readthedocs.io/en/latest/tutorials/evaluate_gerbil/)
 4. [Deploy REL for a new Wikipedia corpus](https://rel.readthedocs.io/en/latest/tutorials/deploy_REL_new_wiki/):
 5. [Reproducing our results](https://rel.readthedocs.io/en/latest/tutorials/reproducing_our_results/)
-6. [REL as systemd service](https://rel.readthedocs.io/en/latest/tutorials/systemd_instructions/)
+6. [REL server](https://rel.readthedocs.io/en/latest/tutorials/server/)
 7. [Notes on using custom models](https://rel.readthedocs.io/en/latest/tutorials/custom_models/)
 
 ## Efficiency of REL
