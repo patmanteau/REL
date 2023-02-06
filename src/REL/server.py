@@ -4,34 +4,34 @@ from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from pydantic import Field
-from typing import List, Optional, Literal, Union, Annotated
+from typing import List, Optional, Literal, Union, Annotated, Tuple
 
 DEBUG = False
 
 app = FastAPI()
 
 
-@app.get("/")
-def root():
-    """Returns server status."""
-    return {
-        "schemaVersion": 1,
-        "label": "status",
-        "message": "up",
-        "color": "green",
-    }
-
+Span = Tuple[int, int]
 
 class NamedEntityConfig(BaseModel):
-    mode: Literal["ne"]
-
+    """Config for named entity linking. For more information, see
+    <https://rel.readthedocs.io/en/latest/tutorials/e2e_entity_linking/>
+    """
     text: str = Field(..., description="Text for entity linking or disambiguation.")
-    spans: List[str] = Field(
-        ...,
+    spans: Optional[List[Span]] = Field(
+        None,
         description=(
-            "For EL: the spans field needs to be set to an empty list. "
-            "For ED: spans should consist of a list of tuples, where each "
-            "tuple refers to the start position and length of a mention."
+            """
+For EL: the spans field needs to be set to an empty list. 
+
+For ED: spans should consist of a list of tuples, where each tuple refers to 
+the start position and length of a mention.
+
+This is used when mentions are already identified and disambiguation is only 
+needed. Each tuple represents start position and length of mention (in 
+characters); e.g.,  `[(0, 8), (15,11)]` for mentions 'Nijmegen' and 
+'Netherlands' in text 'Nijmegen is in the Netherlands'.
+"""
         ),
     )
     tagger: Literal[
@@ -47,7 +47,7 @@ class NamedEntityConfig(BaseModel):
 
 
 class NamedEntityConceptConfig(BaseModel):
-    mode: Literal["ne_concept"]
+    """Config for named entity linking. Not yet implemented."""
 
     def response(self):
         """Return response for request."""
@@ -59,15 +59,19 @@ class NamedEntityConceptConfig(BaseModel):
 
 
 class ConversationTurn(BaseModel):
+    """Specify turns in a conversation. Each turn has a `speaker`
+    and an `utterance`."""
+
     speaker: Literal["USER", "SYSTEM"] = Field(
-        ..., description="Speaker for this turn."
+        ..., description="Speaker for this turn, must be one of `USER` or `SYSTEM`."
     )
-    utterance: str = Field(..., description="Input utterance.")
+    utterance: str = Field(..., description="Input utterance to be annotated.")
 
 
 class ConversationConfig(BaseModel):
-    mode: Literal["conv"]
-
+    """Config for conversational entity linking. For more information:
+    <https://rel.readthedocs.io/en/latest/tutorials/conversations/>.
+    """
     text: List[ConversationTurn] = Field(
         ..., description="Conversation as list of turns between two speakers."
     )
@@ -83,29 +87,91 @@ class ConversationConfig(BaseModel):
         return response
 
 
-class DefaultConfig(NamedEntityConfig):
-    mode: Literal["ne"] = "ne"
+class TurnAnnotation(BaseModel):
+    __root__: List[Union[int, str]] = Field(
+        ...,
+        min_items=4, max_items=4,
+        description="""
+The 4 values of the annotation represent the start index of the word, 
+length of the word, the annotated word, and the prediction.
+""",
+    )
 
 
-Config = Annotated[
-    Union[
-        NamedEntityConfig,
-        NamedEntityConceptConfig,
-        ConversationConfig,
-        DefaultConfig,  # default must be last
-    ],
-    Field(discriminator="mode"),
-]
+class SystemResponse(ConversationTurn):
+    """Return input when the speaker equals 'SYSTEM'."""
+    speaker: str = 'SYSTEM'
+
+class UserResponse(ConversationTurn):
+    """Return annotations when the speaker equals 'USER'."""
+    speaker: str = 'USER'
+    annotations: List[TurnAnnotation] = Field(
+        ...,
+        description="List of annotations.")
+
+TurnResponse = Union[UserResponse, SystemResponse]
 
 
-@app.post("/")
-def root(config: Config):
+class NEAnnotation(BaseModel):
+    """Annotation for named entity linking."""
+
+    __root__: List[Union[int, str, float]] = Field(..., 
+        min_items=7, max_items=7,
+        description="""
+The 7 values of the annotation represent the 
+start index, end index, the annotated word, prediction, ED confidence, MD confidence, and tag.
+""")
+
+
+@app.get("/")
+def root():
+    """Returns server status."""
+    return {
+        "schemaVersion": 1,
+        "label": "status",
+        "message": "up",
+        "color": "green",
+    }
+
+
+@app.post("/", response_model=List[NEAnnotation])
+def root(config: NamedEntityConfig):
+    """Submit your text here for entity disambiguation or linking.
+
+    The REL annotation mode can be selected by changing the endpoint.
+    use `/` or `/ne/` for annotating regular text with named
+    entities (default), `/ne_concept/` for regular text with both concepts and
+    named entities, and `/conv/` for conversations with both concepts and
+    named entities.
+    """
+    if DEBUG:
+        return []
+    return config.response()
+
+
+@app.post("/ne", response_model=List[NEAnnotation])
+def root(config: NamedEntityConfig):
     """Submit your text here for entity disambiguation or linking."""
     if DEBUG:
-        print(f"\nmode: {config.mode} -> {type(config)}\n")
-        return config
-    else:
-        return config.response()
+        return []
+    return config.response()
+
+
+@app.post("/conv", response_model=List[TurnResponse])
+def root(config: ConversationConfig):
+    """Submit your text here for conversational entity linking."""
+    if DEBUG:
+        return []
+    return config.response()
+
+
+@app.post("/ne_concept", response_model=List[NEAnnotation])
+def root(config: NamedEntityConceptConfig):
+    """Submit your text here for conceptual entity disambiguation or linking."""
+    if DEBUG:
+        return []
+    return config.response()
+
 
 
 if __name__ == "__main__":
