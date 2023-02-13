@@ -105,7 +105,7 @@ from REL.entity_disambiguation import EntityDisambiguation
 from REL.ner import Cmns, load_flair_ner
 
 wiki_version = "wiki_2014"
- ```
+```
 
 The code below serves as an example as to how users should format their dataset. This should obviously be replaced
 and should not be used in production, although the outcome is the `input_text` variable that will be used throughout this
