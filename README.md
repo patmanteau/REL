@@ -41,6 +41,42 @@ ed_result = requests.post(API_URL, json={
 }).json()
 ```
 
+## Using REL as a Python package
+
+You can also use REL as a Python package. See the *hello world* example below for how to get started. For more examples, have a look at the [documentation](https://rel.readthedocs.io/en/latest/tutorials/).
+
+```pycon
+from REL.mention_detection import MentionDetection
+from REL.utils import process_results
+from REL.entity_disambiguation import EntityDisambiguation
+from REL.ner import Cmns, load_flair_ner
+
+wiki_version = "wiki_2014"
+base_url = "C:/path/to/rel_data"
+
+input_text = {
+    "my_doc": ("Hello, world!", []),
+}
+
+mention_detection = MentionDetection(base_url, wiki_version)
+tagger_ner = load_flair_ner("ner-fast")
+
+tagger_ngram = Cmns(base_url, wiki_version, n=5)
+mentions, n_mentions = mention_detection.find_mentions(input_text, tagger_ngram)
+
+config = {
+    "mode": "eval",
+    "model_path": "ed-wiki-2014",
+}
+model = EntityDisambiguation(base_url, wiki_version, config)
+
+predictions, timing = model.predict(mentions)
+result = process_results(mentions, predictions, input_text)
+print(result)
+# {'my_doc': [(0, 13, 'Hello, world!', 'Hello_world_program', 0.6534378618767961, 182, '#NGRAM#')]}
+```
+
+
 ## Installation
 
 This section describes how to deploy REL on a local machine and setup the API. If you want to do anything more than simply running our API locally, you can skip the Docker steps and continue with installation from source.
