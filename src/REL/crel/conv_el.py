@@ -5,25 +5,31 @@ from pathlib import Path
 from .bert_md import BERT_MD
 from .s2e_pe import pe_data
 from .s2e_pe.pe import EEMD, PEMD
-from REL.response_model import ResponseModel
+from REL.response_handler import ResponseHandler
 
 
 class ConvEL:
     def __init__(
-        self, base_url=".", wiki_version="wiki_2019", ed_model=None, user_config=None, threshold=0
-    ):
+            self,
+            base_url=".",
+            wiki_version="wiki_2019",
+            ed_model=None,
+            user_config=None,
+            threshold=0,
+            ner_model="bert_conv-td",
+        ):
         self.threshold = threshold
 
         self.wiki_version = wiki_version
         self.base_url = base_url
-        self.file_pretrained = str(Path(base_url) / "bert_conv-td")
+        self.file_pretrained = str(Path(base_url) / ner_model)
 
         self.bert_md = BERT_MD(self.file_pretrained)
 
         if not ed_model:
             ed_model = self._default_ed_model()
 
-        self.response_model = ResponseModel(self.base_url, self.wiki_version, model=ed_model)
+        self.response_handler = ResponseHandler(self.base_url, self.wiki_version, model=ed_model)
         
         self.eemd = EEMD(s2e_pe_model=str(Path(base_url) / "s2e_ast_onto"))
         self.pemd = PEMD()
@@ -155,7 +161,7 @@ class ConvEL:
 
     def ed(self, text, spans):
         """Change tuple to list to match the output format of REL API."""
-        response = self.response_model.generate_response(text=text, spans=spans)
+        response = self.response_handler.generate_response(text=text, spans=spans)
         return [list(ent) for ent in response]
 
 
