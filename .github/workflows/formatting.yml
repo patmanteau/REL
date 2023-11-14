@@ -51,4 +51,4 @@ jobs:
               uses: ad-m/github-push-action@master
               with:
                   branch: ${{ github.ref }}
-                  github_token: ${{ secrets.GITHUB_TOKEN }}
+                  ssh-key: ${{secrets.DEPLOY_KEY}}
