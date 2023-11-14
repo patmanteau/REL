@@ -140,7 +140,7 @@ pip install git+https://github.com/informagi/REL
 ```
 You will also need to manually download the files described in the next section.
 
-### Download data
+#### Download data
 
 The files used for this project can be divided into three categories. The first is a generic set of documents and embeddings that was used throughout the project. This folder includes the GloVe embeddings and the unprocessed datasets that were used to train the ED model. The second and third category are Wikipedia corpus related files, which in our case either originate from a 2014 or 2019 corpus. Alternatively, users may use their own corpus, for which we refer to the tutorials.
 
@@ -150,7 +150,7 @@ The files used for this project can be divided into three categories. The first 
 * [Download Wikipedia corpus (2019)](http://gem.cs.ru.nl/wiki_2019.tar.gz)
 * [Download ED model 2019](http://gem.cs.ru.nl/ed-wiki-2019.tar.gz)
 
-### Tutorials
+## Tutorials
 
 To promote usage of this package we developed various [tutorials](https://rel.readthedocs.io/en/latest/tutorials/). If you simply want to use our API, then 
 we refer to the section above. If you feel one is missing or unclear, then please create an [issue](https://github.com/informagi/REL/issues), which is much appreciated :)! 
