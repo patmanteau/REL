@@ -1,10 +1,10 @@
-from REL.response_handler import ResponseHandler
+from typing import Annotated, List, Literal, Optional, Tuple, Union
 
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
-from pydantic import Field
-from typing import List, Optional, Literal, Union, Annotated, Tuple
+from pydantic import BaseModel, Field
+
+from REL.response_handler import ResponseHandler
 
 DEBUG = False
 
@@ -95,9 +95,7 @@ class ConversationConfig(BaseModel):
     text: List[ConversationTurn] = Field(
         ..., description="Conversation as list of turns between two speakers."
     )
-    tagger: Literal[
-        "default",
-    ] = Field("default", description="NER tagger to use.")
+    tagger: Literal["default",] = Field("default", description="NER tagger to use.")
 
     class Config:
         schema_extra = {
@@ -251,6 +249,7 @@ def conceptual_named_entity_linking(config: NamedEntityConceptConfig):
 
 if __name__ == "__main__":
     import argparse
+
     import uvicorn
 
     p = argparse.ArgumentParser()

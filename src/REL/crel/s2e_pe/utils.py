@@ -4,7 +4,6 @@ from datetime import datetime
 from time import time
 
 import numpy as np
-
 import torch
 
 from .consts import NULL_ID_FOR_COREF

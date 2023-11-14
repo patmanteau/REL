@@ -1,10 +1,12 @@
-from REL.entity_disambiguation import EntityDisambiguation
-from REL.ner import load_flair_ner
 from flair.models import SequenceTagger
+
+from REL.entity_disambiguation import EntityDisambiguation
 from REL.mention_detection import MentionDetection
+from REL.ner import load_flair_ner
 from REL.utils import process_results
 
 MD_MODELS = {}
+
 
 def _get_mention_detection_model(base_url, wiki_version):
     """Return instance of previously generated model for the same wiki version."""
@@ -30,11 +32,12 @@ class ResponseHandler:
         self.custom_ner = not isinstance(tagger_ner, SequenceTagger)
         self.mention_detection = _get_mention_detection_model(base_url, wiki_version)
 
-    def generate_response(self,
-                          *,
-                          text: list,
-                          spans: list,
-                          ):
+    def generate_response(
+        self,
+        *,
+        text: list,
+        spans: list,
+    ):
         """
         Generates response for API. Can be either ED only or EL, meaning end-to-end.
 
@@ -43,7 +46,7 @@ class ResponseHandler:
 
         if len(text) == 0:
             return []
-        
+
         processed = {self.API_DOC: [text, spans]}
 
         if len(spans) > 0:

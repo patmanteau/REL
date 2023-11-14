@@ -4,8 +4,8 @@ import sqlite3
 from array import array
 from functools import lru_cache
 from os import makedirs, path
-import numpy as np
 
+import numpy as np
 import requests
 
 
@@ -144,13 +144,15 @@ class DB:
             res = [e if e is None else np.frombuffer(e[0], dtype=np.float32)]
         else:
             ret = self.lookup_many(column, table_name, w)
-            mapping = {key: np.frombuffer(value, dtype=np.float32) for key, value in ret}
+            mapping = {
+                key: np.frombuffer(value, dtype=np.float32) for key, value in ret
+            }
             res = [mapping.get(word) for word in w]
 
         return res
 
     def lookup_many(self, column, table_name, w):
-        qmarks = ','.join(('?',)*len(w))
+        qmarks = ",".join(("?",) * len(w))
         return self.cursor.execute(
             f"select word,{column} from {table_name} where word in ({qmarks})",
             w,

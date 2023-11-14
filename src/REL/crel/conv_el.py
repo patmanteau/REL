@@ -2,22 +2,23 @@ import importlib
 import sys
 from pathlib import Path
 
+from REL.response_handler import ResponseHandler
+
 from .bert_md import BERT_MD
 from .s2e_pe import pe_data
 from .s2e_pe.pe import EEMD, PEMD
-from REL.response_handler import ResponseHandler
 
 
 class ConvEL:
     def __init__(
-            self,
-            base_url=".",
-            wiki_version="wiki_2019",
-            ed_model=None,
-            user_config=None,
-            threshold=0,
-            ner_model="bert_conv-td",
-        ):
+        self,
+        base_url=".",
+        wiki_version="wiki_2019",
+        ed_model=None,
+        user_config=None,
+        threshold=0,
+        ner_model="bert_conv-td",
+    ):
         self.threshold = threshold
 
         self.wiki_version = wiki_version
@@ -29,8 +30,10 @@ class ConvEL:
         if not ed_model:
             ed_model = self._default_ed_model()
 
-        self.response_handler = ResponseHandler(self.base_url, self.wiki_version, model=ed_model)
-        
+        self.response_handler = ResponseHandler(
+            self.base_url, self.wiki_version, model=ed_model
+        )
+
         self.eemd = EEMD(s2e_pe_model=str(Path(base_url) / "s2e_ast_onto"))
         self.pemd = PEMD()
 
@@ -45,10 +48,15 @@ class ConvEL:
 
     def _default_ed_model(self):
         from REL.entity_disambiguation import EntityDisambiguation
-        return EntityDisambiguation(self.base_url, self.wiki_version, user_config={
+
+        return EntityDisambiguation(
+            self.base_url,
+            self.wiki_version,
+            user_config={
                 "mode": "eval",
                 "model_path": f"{self.base_url}/{self.wiki_version}/generated/model",
-            })
+            },
+        )
 
     def _error_check(self, conv):
         assert type(conv) == list
@@ -163,5 +171,3 @@ class ConvEL:
         """Change tuple to list to match the output format of REL API."""
         response = self.response_handler.generate_response(text=text, spans=spans)
         return [list(ent) for ent in response]
-
-

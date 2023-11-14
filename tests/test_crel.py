@@ -1,8 +1,10 @@
 import os
-import pytest
-from REL.crel.conv_el import ConvEL
-import yaml
 from pathlib import Path
+
+import pytest
+import yaml
+
+from REL.crel.conv_el import ConvEL
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
@@ -13,7 +15,8 @@ def cel():
 
 
 @pytest.mark.skipif(
-    os.getenv("GITHUB_ACTIONS")=='true', reason="No way of testing this on Github actions."
+    os.getenv("GITHUB_ACTIONS") == "true",
+    reason="No way of testing this on Github actions.",
 )
 def test_conv1(cel):
     example = [
@@ -55,7 +58,8 @@ def test_conv1(cel):
 
 
 @pytest.mark.skipif(
-    os.getenv("GITHUB_ACTIONS")=='true', reason="No way of testing this on Github actions."
+    os.getenv("GITHUB_ACTIONS") == "true",
+    reason="No way of testing this on Github actions.",
 )
 def test_conv2(cel):
     example = [

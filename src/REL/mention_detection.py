@@ -5,11 +5,11 @@ from segtok.segmenter import split_single
 from REL.mention_detection_base import MentionDetectionBase
 
 
-
 class MentionDetection(MentionDetectionBase):
     """
     Class responsible for mention detection.
     """
+
     def __init__(self, base_url, wiki_version):
         self.cnt_exact = 0
         self.cnt_partial = 0
@@ -134,7 +134,6 @@ class MentionDetection(MentionDetectionBase):
             for (idx_sent, (sentence, ground_truth_sentence)), snt in zip(
                 contents.items(), sentences
             ):
-
                 # Only include offset if using Flair.
                 if is_flair:
                     offset = raw_text.find(sentence, cum_sent_length)

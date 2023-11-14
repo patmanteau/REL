@@ -102,7 +102,6 @@ class PreProcess:
 
         # Main
         for m_span in m_spans:
-
             # if token span is out of mention span (i.e., does not have any overlaps), then go to next
             t_out_m = (t_span[1] <= m_span[0]) or (m_span[1] <= t_span[0])
             if t_out_m:

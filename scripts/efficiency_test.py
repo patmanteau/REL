@@ -1,6 +1,7 @@
+import os
+
 import numpy as np
 import requests
-import os
 
 from REL.training_datasets import TrainingEvaluationDatasets
 
@@ -8,8 +9,8 @@ np.random.seed(seed=42)
 
 base_url = os.environ.get("REL_BASE_URL")
 wiki_version = "wiki_2019"
-host = 'localhost'
-port = '5555'
+host = "localhost"
+port = "5555"
 datasets = TrainingEvaluationDatasets(base_url, wiki_version).load()["aida_testB"]
 
 # random_docs = np.random.choice(list(datasets.keys()), 50)

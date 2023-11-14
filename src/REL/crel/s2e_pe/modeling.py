@@ -174,7 +174,6 @@ class S2E(BertPreTrainedModel):
     def _ce_prune_pem_eem(
         self, mention_logits, pem_eem_subtokenspan
     ):  # attention_mask, subtoken_map, pem_eem_subtokenspan):
-
         batch_size, seq_length, _ = mention_logits.size()
         assert batch_size == 1  # HJ: currently, only batch_size==1 is supported
 

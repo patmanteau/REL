@@ -1,4 +1,5 @@
 import os
+
 import requests
 
 # Script for testing the implementation of the conversational entity linking API
