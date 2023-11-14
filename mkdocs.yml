@@ -86,6 +86,6 @@ plugins:
           merge_init_into_class: yes
 
 watch:
-  - REL/
+  - src/REL/
   - docs/
   - README.md
